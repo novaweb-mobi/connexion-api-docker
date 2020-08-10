@@ -1,0 +1,21 @@
+FROM python:3.7-alpine
+WORKDIR /app
+ENV PROCESSES 1
+ENV PORT 80
+ENV THREAD true
+RUN apk add --virtual .build-dependencies \
+            --no-cache \
+            python3-dev \
+            build-base \
+            linux-headers \
+            pcre-dev
+RUN apk add --no-cache pcre
+COPY requirements.txt .
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt && rm requirements.txt
+RUN apk del .build-dependencies && rm -rf /var/cache/apk/*
+COPY server.py .
+COPY wsgi.ini .
+EXPOSE ${PORT}
+CMD ["uwsgi", "--ini", "/app/wsgi.ini"]
+

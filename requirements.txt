@@ -1,0 +1,4 @@
+flask
+flask-cors
+connexion[swagger-ui]
+uwsgi
