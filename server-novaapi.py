@@ -20,6 +20,8 @@ APIS = [api.strip() for api in APIS.split(',')]
 VERSION = environ.get('VERSION') or '1'
 
 for entity in ENTITIES:
+    if entity == '':
+        continue
     dao_class = entity + 'DAO'
     mod = __import__(dao_class, fromlist=[dao_class])
     entity_dao = getattr(mod, dao_class)
@@ -35,10 +37,23 @@ app = connexion.App(__name__, specification_dir=".")
 CORS(app.app)
 
 for entity in ENTITIES:
+    if entity == '':
+        continue
+    dao_class = entity + 'DAO'
+    mod = __import__(dao_class, fromlist=[dao_class])
+    entity_dao = getattr(mod, dao_class)
+    mod = __import__(entity, fromlist=[entity])
+    entity_class = getattr(mod, entity)
+    create_api_files(entity_class, entity_dao, VERSION)
+    dao = entity_dao()
+    dao.create_table_if_not_exists()
+    print("Done creating table and api files for {ent}".format(ent=entity))
     app.add_api(entity.lower() + "_api.yml")
     print("Done adding api for {ent}".format(ent=entity))
 
 for api in APIS:
+    if api == '':
+        continue
     app.add_api(api)
     print("Done adding api {api}".format(api=api))
 
